@@ -1,20 +1,21 @@
+
+```
 # 🗄️ MySQL Using Docker
 
-Welcome to the **MySQL Using Docker** project! This project demonstrates how to run a MySQL database container using Docker. It includes setting environment variables, initializing the database with a `.sql` file, and verifying everything works — all inside a Docker container.
+This project demonstrates how to run a **MySQL** database inside a Docker container. It includes an initialization SQL script to create a database and populate it with sample data. This setup is great for development, testing, or learning SQL in a consistent environment.
 
 ---
 
 ## 📋 Prerequisites
 
-Make sure the following are installed on your system:
+Ensure you have the following installed:
 
-- ✅ Docker (https://docs.docker.com/get-docker/)
-- ✅ Docker Desktop (for GUI users)
-- ✅ Basic terminal/command line usage
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
 ---
 
-## 🗂️ Project Structure
+## 📂 Project Structure
 
 ```
 04_SQL_MySQL/
@@ -22,104 +23,104 @@ Make sure the following are installed on your system:
 ├── init.sql
 ```
 
+- **Dockerfile** – Builds the custom MySQL image
+- **init.sql** – Contains the schema and sample data to initialize
+
 ---
 
-## 📄 Step 1: Create the SQL Initialization Script
+## 🧾 init.sql
 
-Create a file named `init.sql` with the following content:
+This SQL script creates a database called `student`, a table `students`, and inserts some sample data.
 
 ```sql
--- init.sql
-CREATE DATABASE IF NOT EXISTS student_db;
+CREATE DATABASE student;
+USE student;
 
-USE student_db;
-
-CREATE TABLE IF NOT EXISTS students (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    grade CHAR(1)
+CREATE TABLE students (
+    StudentID INT NOT NULL AUTO_INCREMENT,
+    FirstName VARCHAR(100) NOT NULL,
+    Surname VARCHAR(100) NOT NULL,
+    PRIMARY KEY (StudentID)
 );
 
-INSERT INTO students (name, grade) VALUES ('Dhruv', 'Kaushik'), ('Mehak', 'Dhiman'), ('Sambit', 'Majumder'), ('Saurabh', 'Singh');
+INSERT INTO students (FirstName, Surname)
+VALUES 
+    ("Dhruv", "Kaushik"),
+    ("Mehak", "Dhiman"),
+    ("Sambit", "Majumder"),
+    ("Saurabh", "Singh");
 ```
-
-This script will be executed automatically when the container is initialized.
 
 ---
 
-## 🐳 Step 2: Create the Dockerfile
-
-Now, add the following content to your `Dockerfile`:
+## 🐳 Dockerfile
 
 ```Dockerfile
-# Dockerfile
-
+# Use the official MySQL image as base
 FROM mysql:latest
 
-# Set environment variables
+# Set root password for MySQL
 ENV MYSQL_ROOT_PASSWORD=root
-ENV MYSQL_DATABASE=student_db
 
-# Copy SQL script into Docker image
-COPY init.sql /docker-entrypoint-initdb.d/
+# Copy SQL file into Docker image for auto-init
+COPY ./init.sql /docker-entrypoint-initdb.d/
 ```
 
-📌 Notes:
-- `MYSQL_ROOT_PASSWORD` sets the root password.
-- The `.sql` file in `/docker-entrypoint-initdb.d/` runs automatically when the container starts for the first time.
+This Dockerfile:
+- Starts from the official MySQL image
+- Sets a root password (`root`)
+- Automatically runs `init.sql` during container startup
 
 ---
 
-## 🧱 Step 3: Build the Docker Image
+## 🏗️ Build the Docker Image
 
-Open your terminal in the project folder and run:
+Run the following command in the project directory:
 
 ```bash
-docker build -t mysql-student-db .
+docker build -t mysql-db .
 ```
-
-This command builds a Docker image with MySQL preloaded with your SQL script.
 
 ---
 
-## 🚀 Step 4: Run the MySQL Container
-
-Now, start the container:
+## 🚀 Run the MySQL Container
 
 ```bash
-docker run -d \
-  --name mysql-container \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -p 3306:3306 \
-  mysql-student-db
+docker run -d --name mysql-container -p 3306:3306 mysql-db
 ```
 
-You should now have a MySQL server running on port `3306`.
+- `-d` runs the container in detached mode
+- `--name` gives it a recognizable name
+- `-p 3306:3306` maps the container port to your machine
 
 ---
 
-## 🔍 Step 5: Verify the Setup
+## 🛠️ Access the MySQL CLI
 
-To verify that the database and table were created successfully:
-
-1. Enter the container:
+Once running, enter the container:
 
 ```bash
-docker exec -it mysql-container mysql -uroot -proot
+docker exec -it mysql-container bash
 ```
 
-2. Run SQL commands:
+Then start the MySQL shell:
+
+```bash
+mysql -u root -p
+# Password: root
+```
+
+Switch to the `student` database:
 
 ```sql
-SHOW DATABASES;
-USE student_db;
-SHOW TABLES;
+USE student;
 SELECT * FROM students;
 ```
 
-✅ THE OUTPUT
+You should see output like:
 
- +-----------+-----------+----------+
+```
++-----------+-----------+----------+
 | StudentID | FirstName | Surname  |
 +-----------+-----------+----------+
 |         1 | Dhruv     | Kaushik  |
@@ -127,9 +128,11 @@ SELECT * FROM students;
 |         3 | Sambit    | Majumder |
 |         4 | Saurabh   | Singh    |
 +-----------+-----------+----------+
-
+```
 
 ---
+
+
 
 ## 📄 Documentation
 
