@@ -1,0 +1,6 @@
+services:
+  helloworld:
+    image: helloworld
+    build:
+      context: .
+      dockerfile: ./Dockerfile

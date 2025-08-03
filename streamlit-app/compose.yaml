@@ -1,0 +1,6 @@
+services:
+  streamlitapp:
+    image: streamlitapp
+    build:
+      context: .
+      dockerfile: ./Dockerfile
