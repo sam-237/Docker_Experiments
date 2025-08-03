@@ -1,89 +1,101 @@
-# Docker_Experiments
-A collection of beginner-to-intermediate Docker experiments with step-by-step instructions, showcasing containerization of Python apps, MySQL, Streamlit, and more.
-
-🧪 Experiment Portfolio: 6 Projects with Docker and Streamlit 🚀
+# 🧪 Experiment Portfolio: 6 Projects with Docker and Streamlit 🚀
 
 Welcome to my experiment portfolio! This repository showcases 6 unique projects that demonstrate my growing proficiency with Docker, Streamlit, Python apps, volumes, and containerization best practices.
 
-Each project folder contains its own README.md with detailed instructions, code, and deployment steps. This summary gives an overview of each.
+Each project below includes the description, code, and deployment steps right here in this single README for easy reference and copying.
 
-Table of Contents 📑
+---
 
-Docker Basics: Hello World 🐳
+## 📑 Table of Contents
 
-Streamlit App Using Docker 🐍
+1. [Docker Basics: Hello World 🐳](#1-docker-basics-hello-world-)
+2. [Streamlit App Using Docker 🐍](#2-streamlit-app-using-docker-)
+3. [Streamlit ML Classification App 🤖](#3-streamlit-ml-classification-app-)
+4. [Docker Volume with Logging 💾](#4-docker-volume-with-logging-)
+5. [Streamlit + Evidently for ML Monitoring 📊](#5-streamlit--evidently-for-ml-monitoring-)
+6. [Streamlit App on AWS EC2 ☁️](#6-streamlit-app-on-aws-ec2-)
 
-Streamlit ML Classification App 🤖
+---
 
-Docker Volume with Logging 💾
+## 1. Docker Basics: Hello World 🐳
 
-Streamlit + Evidently for ML Monitoring 📊
+**Description**
 
-Streamlit App on AWS EC2 ☁️
+> A minimal Python script to get started with Docker. It prints a greeting from inside the container.
 
-1. Docker Basics: Hello World 🐳
+**Code**
 
-Description
-
-A minimal Python script to get started with Docker. It prints a greeting from inside the container.
-
-Code
-
+```Dockerfile
 FROM python:3.9-slim
 WORKDIR /app
 COPY app.py /app
 CMD ["python", "app.py"]
+```
 
+```python
 print("Hello, World from Docker! 🐳")
+```
 
-Deployment
+**Deployment**
 
+```bash
 docker build -t hello-world .
 docker run hello-world
+```
 
-2. Streamlit App Using Docker 🐍
+---
 
-Description
+## 2. Streamlit App Using Docker 🐍
 
-A basic Streamlit app running inside Docker. Prompts the user for their name and displays a message.
+**Description**
 
-Code
+> A basic Streamlit app running inside Docker. Prompts the user for their name and displays a message.
 
+**Code**
+
+```python
 import streamlit as st
+
 st.title("My First App")
 st.write("Hello How are you")
 name = st.text_input("What is your name")
 if name:
     st.success(f"Nice to meet you , {name}!")
+```
 
+```Dockerfile
 FROM python:3-slim
 WORKDIR /app
 COPY pythonapp.py pythonapp.py
 RUN pip install streamlit
 EXPOSE 8501
 CMD ["streamlit", "run", "pythonapp.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
 
-Deployment
+**Deployment**
 
+```bash
 docker build -t streamlit-basic .
 docker run -p 8501:8501 streamlit-basic
+```
 
-3. Streamlit ML Classification App 🤖
+---
 
-Description
+## 3. Streamlit ML Classification App 🤖
 
-A full-featured Streamlit app that classifies mushrooms as edible or poisonous. Users can choose between SVM, Logistic Regression, and Random Forest classifiers.
+**Description**
 
-Highlights
+> A full-featured Streamlit app that classifies mushrooms as edible or poisonous. Users can choose between SVM, Logistic Regression, and Random Forest classifiers.
 
-Model training, evaluation, and visualization
+**Highlights**
 
-Caching for performance
+- Model training, evaluation, and visualization
+- Caching for performance
+- Interactive sidebar controls
 
-Interactive sidebar controls
+**Dockerfile**
 
-Dockerfile
-
+```Dockerfile
 FROM python:3.9-slim
 WORKDIR /app
 COPY app.py /app
@@ -93,69 +105,86 @@ RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt
 EXPOSE 8501
 ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+```
 
-Deployment
+**Deployment**
 
+```bash
 docker build -t mushroom-classifier .
 docker run -p 8501:8501 mushroom-classifier
+```
 
-4. Docker Volume with Logging 💾
+---
 
-Description
+## 4. Docker Volume with Logging 💾
 
-Demonstrates persistent logging using Docker volumes. The Python script logs timestamps to a shared volume every 5 seconds.
+**Description**
 
-Code
+> Demonstrates persistent logging using Docker volumes. The Python script logs timestamps to a shared volume every 5 seconds.
 
+**Code**
+
+```python
 import time
 import logging
+
 logging.basicConfig(filename='/logs/app.log', level=logging.INFO)
 while True:
     logging.info(f'Logging a new entry at {time.ctime()}')
     time.sleep(5)
+```
 
+```Dockerfile
 FROM python:3.9-slim
 WORKDIR /app
 COPY app.py /app/
 RUN mkdir -p /logs
 CMD ["python", "app.py"]
+```
 
-Deployment
+**Deployment**
 
+```bash
 docker build -t volume-logger .
 docker run -v logs:/logs volume-logger
+```
 
-5. Streamlit + Evidently for ML Monitoring 📊
+---
 
-Description
+## 5. Streamlit + Evidently for ML Monitoring 📊
 
-Uses Evidently and Streamlit to display monitoring dashboards. Helps detect data drift and visualize performance metrics.
+**Description**
 
-Highlights
+> Uses Evidently and Streamlit to display monitoring dashboards. Helps detect data drift and visualize performance metrics.
 
-Data drift detection
+**Highlights**
 
-Interactive charts with Streamlit
+- Data drift detection
+- Interactive charts with Streamlit
 
-Commands
+**Commands**
 
+```bash
 pip install streamlit evidently pandas
 streamlit run app.py
+```
 
-Use Cases
+**Use Cases**
 
-Monitor model accuracy
+- Monitor model accuracy
+- Analyze input feature drift over time
 
-Analyze input feature drift over time
+---
 
-6. Streamlit App on AWS EC2 ☁️
+## 6. Streamlit App on AWS EC2 ☁️
 
-Description
+**Description**
 
-Shows how to deploy a Streamlit Docker app on an AWS EC2 instance. Covers SSH, Docker installation, and remote hosting.
+> Shows how to deploy a Streamlit Docker app on an AWS EC2 instance. Covers SSH, Docker installation, and remote hosting.
 
-Deployment Steps
+**Deployment Steps**
 
+```bash
 # Connect to EC2
 ssh -i key.pem ec2-user@your-public-ip
 
@@ -167,6 +196,8 @@ sudo service docker start
 # Upload code and run
 docker build -t my-streamlit-app .
 docker run -p 8501:8501 my-streamlit-app
+```
 
-🎉 Thanks for exploring my Docker experiments! Each project was designed to learn, apply, and grow confidence with containers, Python apps, and ML deployments. For detailed walkthroughs, see the individual folders!
+---
 
+🎉 **Thanks for exploring my Docker experiments!** Each project was designed to learn, apply, and grow confidence with containers, Python apps, and ML deployments.

@@ -1,45 +1,105 @@
-🍄 Binary Classification with Streamlit + Docker
-This project demonstrates how to deploy a machine learning binary classification model using Streamlit inside a Docker container. The app predicts whether mushrooms are edible or poisonous based on various features.
+# 🖥️ Full Stack App Using Docker (Flask + MySQL + CSV Data)
 
-📋 Prerequisites
-Make sure the following are installed:
+This project demonstrates how to build and run a **full stack web application** using **Flask (Python)** as the backend and **MySQL** as the database — all containerized using Docker and Docker Compose.
 
-Docker 👉 Install Docker
+It also loads data from a **CSV file (`mushroom.csv`)** into the MySQL database.
 
-Internet connection (to download base image and Python packages)
+---
 
-🗂️ Project Structure
-bash
-Copy
-Edit
-04_Streamlit_Classifier/
-├── app.py              # Streamlit app (mushroom classifier)
-├── mushrooms.csv       # Dataset used for training
-├── Dockerfile          # Docker instructions
-├── requirements.txt    # Python dependencies
-└── README.md           # You're here
-🧠 App Features
-Train and compare SVM, Logistic Regression, and Random Forest
+## 📋 Prerequisites
 
-Tune hyperparameters via sidebar
+Make sure you have the following installed:
 
-Plot:
+- ✅ Docker: [Install Docker](https://docs.docker.com/get-docker/)
+- ✅ Docker Desktop (optional GUI)
+- ✅ Basic knowledge of Flask, MySQL, and Docker
 
-Confusion Matrix
+---
 
-ROC Curve
+## 🗂️ Project Structure
 
-Precision-Recall Curve
+```
+05_FullStack_App/
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   └── mushroom.csv
+├── Dockerfile
+├── docker-compose.yml
+```
 
-Show raw dataset with a checkbox
+---
 
-📦 Step-by-Step Setup
-📌 Step 1: Dockerfile
-Here's the Dockerfile used:
+## 🔧 Step 1: Flask Backend Code
 
-Dockerfile
-Copy
-Edit
+### backend/app.py
+
+```python
+# app.py
+
+from flask import Flask
+import mysql.connector
+import csv
+
+app = Flask(__name__)
+
+def load_csv_to_db():
+    connection = mysql.connector.connect(
+        host='mysql_db',
+        user='root',
+        password='root',
+        database='test_db'
+    )
+    cursor = connection.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS mushrooms (class VARCHAR(10), cap_shape VARCHAR(10));")
+
+    with open('mushroom.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # skip header
+        for row in reader:
+            cursor.execute("INSERT INTO mushrooms (class, cap_shape) VALUES (%s, %s)", row)
+
+    connection.commit()
+    connection.close()
+
+@app.route('/')
+def hello():
+    connection = mysql.connector.connect(
+        host='mysql_db',
+        user='root',
+        password='root',
+        database='test_db'
+    )
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM mushrooms;")
+    count = cursor.fetchone()[0]
+    connection.close()
+    return f"Mushroom dataset loaded with {count} records! 🍄"
+
+if __name__ == '__main__':
+    load_csv_to_db()
+    app.run(host='0.0.0.0', port=5000)
+```
+
+---
+
+## 📦 Step 2: Backend Requirements
+
+### backend/requirements.txt
+
+```
+flask
+mysql-connector-python
+```
+
+---
+
+## 🐳 Step 3: Dockerfile
+
+Create `Dockerfile` in the root folder:
+
+```Dockerfile
+# Dockerfile
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -54,62 +114,104 @@ RUN pip install -r requirements.txt
 EXPOSE 8501
 
 ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-📦 Step 2: requirements.txt
-Make sure your requirements.txt includes:
 
-txt
-Copy
-Edit
-streamlit
-pandas
-scikit-learn
-matplotlib
-You can generate it using:
 
-bash
-Copy
-Edit
-pip freeze > requirements.txt
-🏗️ Step 3: Build Docker Image
-Navigate to your project folder and run:
+```
 
-bash
-Copy
-Edit
-docker build -t streamlit-mushroom .
-🚀 Step 4: Run the Container
-bash
-Copy
-Edit
-docker run -p 8501:8501 streamlit-mushroom
-Then, open your browser and go to:
+---
 
-arduino
-Copy
-Edit
-http://localhost:8501
-You’ll see the full interactive Streamlit UI!
+## ⚙️ Step 4: Docker Compose
 
-🖼️ Screenshot
-(Optional: Add a screenshot of the app in action)
+Create `docker-compose.yml` in the root:
 
-🧪 Bonus Tips
-⏱️ Modify File Without Rebuilding (Dev Mode)
-Mount local files instead of rebuilding image every time:
+```yaml
+# docker-compose.yml
 
-bash
-Copy
-Edit
-docker run -p 8501:8501 -v $(pwd):/app streamlit-mushroom
-📚 References
-Streamlit Docs
+version: '3.8'
 
-scikit-learn Docs
+services:
+  flask-app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql_db
 
-Dockerizing Streamlit
+  mysql_db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
 
-🎉 Conclusion
-You've now deployed a full-featured ML classifier inside a Docker container using Streamlit.
-Play around with classifiers, tweak hyperparameters, and visualize results — all from your browser! 🧠📊
+volumes:
+  mysql_data:
+```
 
-Keep building! Every project like this sharpens your real-world ML + DevOps skills 🚀
+---
+
+## 🍄 Step 5: Mushroom CSV File
+
+Place the `mushroom.csv` file inside the `backend/` folder.
+
+**Sample `mushroom.csv` content:**
+
+```
+class,cap_shape
+edible,bell
+poisonous,conical
+edible,flat
+```
+
+Ensure this file is present **before building the container** so it gets copied into the image.
+
+---
+
+## 🚀 Step 6: Build and Run
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## 🌐 Step 7: View in Browser
+
+Open your browser and go to:
+
+```
+http://localhost:5000
+```
+
+You should see:
+
+```
+Mushroom dataset loaded with 3 records! 🍄
+```
+
+---
+
+## 🧼 To Stop & Clean Up
+
+```bash
+docker-compose down -v
+```
+
+---
+
+## 📚 Documentation
+
+- [Flask](https://flask.palletsprojects.com/)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [MySQL Docker Image](https://hub.docker.com/_/mysql)
+
+---
+
+## 🎉 Conclusion
+
+You've successfully built a containerized full stack app that loads data from a CSV into a MySQL database and serves it through a Flask backend. Great job! 🍄🐳🚀
+
